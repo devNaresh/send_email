@@ -1,0 +1,11 @@
+t.*
+*.pyc
+*.pyo
+.DS_Store
+*~
+TODO*
+*.orig
+build/
+dist/
+.idea/
+*.egg-info/
