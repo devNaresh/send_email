@@ -10,7 +10,12 @@ import sys
 import smtplib
 
 
-def _send_email(to_addrs, subject, body):
+def do_send_email(subject, body, to_addrs=None, cc_addrs=None, bcc_addrs=None):
+    assert (to_addrs or cc_addrs or bcc_addrs)
+    if not to_addrs: to_addrs = []
+    if not cc_addrs: cc_addrs = []
+    if not bcc_addrs: bcc_addrs = []
+
     config_in_d = get_config_in_d()
 
     smtp = smtplib.SMTP()
@@ -35,14 +40,20 @@ def _send_email(to_addrs, subject, body):
     msg.attach(text)
 
     msg["From"] = config_in_d['username']
-    msg["To"] = ";".join(to_addrs)
+    if to_addrs:
+        msg["To"] = ",".join(to_addrs)
+    if cc_addrs:
+        msg["Cc"] = ",".join(cc_addrs)
+    if bcc_addrs:
+        msg["Bcc"] = ",".join(bcc_addrs)
     msg["Subject"] = Header(subject, "utf-8")
+    print 'to_addrs', type(to_addrs), to_addrs
     smtp.sendmail(from_addr=config_in_d['username'], to_addrs=to_addrs, msg=msg.as_string())
     smtp.quit()
 
 def send_email(to_addrs, subject, body):
     try:
-        _send_email(to_addrs, subject, body)
+        do_send_email(subject=subject, body=body, to_addrs=to_addrs)
         return 0
     except Exception:
         import traceback
@@ -62,9 +73,6 @@ def get_config_in_d():
     )
 
 
-def show_help():
-    print "Usage: %s <to_contact> <subject> <body>" % sys.argv[0]
-
 def test_send_email():
     subject = u"又挂了"
     body = u"又挂了"
@@ -73,12 +81,18 @@ def test_send_email():
         body=body)
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-    if not args or len(args) != 3:
-        show_help()
-        exit(1)
-    else:
-        to_contact, subject, body = args[0].strip(), args[1], args[2]
-        exit(send_email([to_contact], subject, body))
+    import argparse
+    parser = argparse.ArgumentParser(prog=sys.argv[0])
+
+    parser.add_argument('--to', required=True, help='split string by ","')
+    # parser.add_argument('--cc', help='split string by ","')
+    # parser.add_argument('--bcc', help='split string by ","')
+    parser.add_argument('--subject', required=True)
+    parser.add_argument('--body', required=True)
+
+    args = parser.parse_args()
+
+    to_addrs = args.to.strip().split(',')
+    exit(send_email(to_addrs=to_addrs, subject=args.subject, body=args.body))
         
     

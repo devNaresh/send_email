@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name='send_email',
-    version='201212',
+    version='201407',
     packages=[''],
     url='https://github.com/shuge/send_email',
     license='MIT License',
